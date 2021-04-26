@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 const uuidv1 = require('uuidv1');
 
-const UserSchema = new mongoose.Schema(
+let UserSchema = new mongoose.Schema(
     {
         fname: {
             type: String,
@@ -22,10 +22,9 @@ const UserSchema = new mongoose.Schema(
             required: true,
             maxlength: 32
         },
-        name: {
+        full_name: {
             type: String,
-            trim: true,
-            maxlength: 50
+            trim: true
         },
         uname: {
             type: String,
@@ -80,5 +79,26 @@ UserSchema.methods = {
         }
     }
 };
+
+
+UserSchema.pre('save', function (next) {
+  var user = this;
+  const { fname, mname, lname } = user;
+  user.full_name = `${fname} ${mname} ${lname}`;
+  user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
+  user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
+  user.mname = mname[0].toUpperCase() + mname.slice(1).toLowerCase();
+  next();
+});
+
+UserSchema.pre('findOneAndUpdate', function (next) {
+  var user = this._update;
+  const { fname, mname, lname } = user;
+  user.full_name = `${fname} ${mname} ${lname}`;
+  user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
+  user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
+  user.mname = mname[0].toUpperCase() + mname.slice(1).toLowerCase();
+  next();
+});
 
 module.exports = mongoose.model('User', UserSchema);

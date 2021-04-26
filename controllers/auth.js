@@ -21,15 +21,14 @@ exports.signup = ( req, res ) => {
         error:errorHandler(err)
       })
     }
-    const { _id, fname, mname, lname, email, uname, role } = user
-    const name  = fname + " " + mname + " " + lname;
+    const { _id, fname, mname, lname, email, uname, role, full_name } = user
     const token = jwt.sign({ _id: user._id }, config.secret);
     user.salt = undefined;
     user.hashed_password = undefined;
-    console.log('NAMEEE', name);
+    console.log('NAMEEE', full_name);
     console.log('USER', user);
     res.json({
-       token, _id, email, fname, mname, lname, uname, name, role
+       token, _id, email, fname, mname, lname, uname, full_name, role
     });
   });
 }
@@ -57,7 +56,7 @@ exports.signin = ( req, res ) => {
         // generate a signed token with user id and secret
         var token = generateAccessToken(user);
         var refreshToken = jwt.sign(user.toJSON(), config.refreshTokenSecret,{ expiresIn: config.refreshTokenLife });
-        const { _id, fname, mname, lname, email, uname, name, role } = user;
+        const { _id, fname, mname, lname, email, uname, full_name, role } = user;
 
         RefreshToken.create({ token: refreshToken }, function (err, whitelist) {
           if (err) {
@@ -65,7 +64,7 @@ exports.signin = ( req, res ) => {
                 error: 'Server failed'
             });
           } else {
-            return res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, name, role  });
+            return res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, full_name, role  });
           }
         });
         // persist the token as 't' in cookie with expiry date
@@ -91,7 +90,7 @@ exports.signin = ( req, res ) => {
         // generate a signed token with user id and secret
         var token = generateAccessToken(user);
         var refreshToken = jwt.sign(user.toJSON(), config.refreshTokenSecret);
-        const { _id, fname, mname, lname, email, uname, name, role } = user;
+        const { _id, fname, mname, lname, email, uname, full_name, role } = user;
 
         RefreshToken.create({ token: refreshToken }, function (err, whitelist) {
           if (err) {
@@ -99,7 +98,7 @@ exports.signin = ( req, res ) => {
                 error: 'Server failed'
             });
           } else {
-            return res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, name, role  });
+            return res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, full_name, role  });
           }
         });
         // persist the token as 't' in cookie with expiry date
