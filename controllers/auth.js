@@ -3,6 +3,7 @@ const RefreshToken = require('../models/RefreshToken');
 const jwt = require('jsonwebtoken'); //to generate signed token
 const config = require ('../config');
 const { body } = require('express-validator');
+const { errorHandler } = require ('../helpers/dbErrorHandler');
 
 let refreshTokens = []
 
@@ -15,16 +16,20 @@ exports.signup = ( req, res ) => {
   const user = new User(req.body);
   user.save((err, user)=> {
     if(err){
+      console.log('ERROR: ', err)
       return res.status(400).json({
         error:errorHandler(err)
       })
     }
     const { _id, fname, mname, lname, email, uname, role } = user
+    const name  = fname + " " + mname + " " + lname;
     const token = jwt.sign({ _id: user._id }, config.secret);
     user.salt = undefined;
     user.hashed_password = undefined;
+    console.log('NAMEEE', name);
+    console.log('USER', user);
     res.json({
-       token, _id, email, fname, mname, lname, uname, role
+       token, _id, email, fname, mname, lname, uname, name, role
     });
   });
 }
@@ -52,6 +57,7 @@ exports.signin = ( req, res ) => {
         // generate a signed token with user id and secret
         var token = generateAccessToken(user);
         var refreshToken = jwt.sign(user.toJSON(), config.refreshTokenSecret,{ expiresIn: config.refreshTokenLife });
+        const { _id, fname, mname, lname, email, uname, name, role } = user;
 
         RefreshToken.create({ token: refreshToken }, function (err, whitelist) {
           if (err) {
@@ -59,12 +65,11 @@ exports.signin = ( req, res ) => {
                 error: 'Server failed'
             });
           } else {
-            return res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, role  });
+            return res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, name, role  });
           }
         });
         // persist the token as 't' in cookie with expiry date
         // return response with user and token to frontend client
-        const { _id, fname, mname, lname, email, uname, role } = user;
     });
   }
 
@@ -86,6 +91,7 @@ exports.signin = ( req, res ) => {
         // generate a signed token with user id and secret
         var token = generateAccessToken(user);
         var refreshToken = jwt.sign(user.toJSON(), config.refreshTokenSecret);
+        const { _id, fname, mname, lname, email, uname, name, role } = user;
 
         RefreshToken.create({ token: refreshToken }, function (err, whitelist) {
           if (err) {
@@ -93,12 +99,11 @@ exports.signin = ( req, res ) => {
                 error: 'Server failed'
             });
           } else {
-            return res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, role  });
+            return res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, name, role  });
           }
         });
         // persist the token as 't' in cookie with expiry date
         // return response with user and token to frontend client
-        const { _id, fname, mname, lname, email, uname, role } = user;
     });
   }
 }

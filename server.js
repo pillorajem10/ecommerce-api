@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const expressValidator = require('express-validator');
+const morgan = require('morgan');
 
 //config
 const config = require('./config');
@@ -18,6 +19,7 @@ const port = 3001;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(expressValidator());
+app.use(morgan('dev'));
 
 //import routes
 const auth = require('./routes/auth');

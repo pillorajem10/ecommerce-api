@@ -5,5 +5,5 @@ module.exports = {
   refreshTokenSecret: '76a0d3ded1bc5bcefaf33edf13bc5d7ea64aa17d8090d25334394486da0c81088e7d44900dbfcc6d013f8cc617cc1e84e5bda386efe3cb9e251b1fce330322be',
   secret: 'lmaoitsasecret',
   refreshTokenLife: '1d',
-  accessTokenLife: '20s',
+  accessTokenLife: '12h',
 };
