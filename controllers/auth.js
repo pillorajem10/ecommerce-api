@@ -5,7 +5,7 @@ const config = require ('../config');
 const { body } = require('express-validator');
 const { errorHandler } = require ('../helpers/dbErrorHandler');
 
-let refreshTokens = []
+//let refreshTokens = []
 
 function generateAccessToken(user) {
   return jwt.sign(user.toJSON(), config.accessTokenSecret, { expiresIn: config.accessTokenLife })
@@ -22,14 +22,20 @@ exports.signup = ( req, res ) => {
       })
     }
     const { _id, fname, mname, lname, email, uname, role, full_name } = user
-    const token = jwt.sign({ _id: user._id }, config.secret);
-    user.salt = undefined;
-    user.hashed_password = undefined;
-    console.log('NAMEEE', full_name);
-    console.log('USER', user);
-    res.json({
-       token, _id, email, fname, mname, lname, uname, full_name, role
+    var token = generateAccessToken(user);
+    var refreshToken = jwt.sign(user.toJSON(), config.refreshTokenSecret);
+    RefreshToken.create({ token: refreshToken }, function (err, whitelist) {
+      if (err) {
+        return res.status(401).json({
+            error: 'Server failed'
+        });
+      } else {
+        res.json({ token, refreshToken, _id, email, fname, mname, lname, uname, full_name, role  });
+        user.salt = undefined;
+        user.hashed_password = undefined;
+      }
     });
+
   });
 }
 

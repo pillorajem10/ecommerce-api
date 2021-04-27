@@ -1,4 +1,5 @@
 const Category = require('../models/Category');
+const Product = require('../models/Prdct');
 const { errorHandler } = require('../helpers/dbErrorHandler');
 const formidable = require ('formidable');
 const _ = require ('lodash');
@@ -96,19 +97,27 @@ exports.list = (req,res) => {
 
 
 //delete category
-exports.remove = (req,res) => {
-  const category = req.category
-  category.remove((err, data)=>{
-    if(err){
-      return res.status(400).json({
-        error:errorHandler(err)
-      });
-    }
-    res.json({
-      message:"Category removed"
+exports.remove = (req, res) => {
+    const category = req.category;
+    Product.find({ category }).exec((err, data) => {
+        if (data.length >= 1) {
+            return res.status(400).json({
+                message: `Sorry. You cant delete ${category.name}. It has ${data.length} associated products.`
+            });
+        } else {
+            category.remove((err, data) => {
+                if (err) {
+                    return res.status(400).json({
+                        error: errorHandler(err)
+                    });
+                }
+                res.json({
+                    message: 'Category deleted'
+                });
+            });
+        }
     });
-  })
-}
+};
 
 
 //update category
