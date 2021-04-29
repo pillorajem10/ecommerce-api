@@ -100,6 +100,7 @@ exports.reviews = (req, res, id) => {
                 error: errorHandler(err)
               });
             } else {
+              console.log('REQ BODY RATING', req.body.rating)
               product.reviews.push(review);
               product.numReviews = product.reviews.length;
               product.rating = product.reviews.reduce((a, c) => c.rating + a, 0) /
