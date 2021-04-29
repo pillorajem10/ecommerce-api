@@ -39,7 +39,10 @@ let ProductSchema = new mongoose.Schema(
           required: true,
           maxlength: 32
       },
-      reviews: [{ type: ObjectId, ref: 'Review'}],
+      reviews: [{
+        type: ObjectId,
+        ref: 'Review'
+      }],
       rating: {
         type: Number,
         default: 0,
