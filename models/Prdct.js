@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Schema;
+//const ReviewSchema = require('./Reviews')
 
 const aggregatePaginate = require("mongoose-aggregate-paginate-v2");
 
@@ -29,7 +30,7 @@ let ProductSchema = new mongoose.Schema(
       },
       brand: {
           type: ObjectId,
-          ref: "Category",
+          ref: "Brand",
           required: true
       },
       seller: {
@@ -37,6 +38,19 @@ let ProductSchema = new mongoose.Schema(
           trim: true,
           required: true,
           maxlength: 32
+      },
+      reviews: [{ type: ObjectId, ref: 'Review'}],
+      rating: {
+        type: Number,
+        default: 0,
+      },
+      finalRating: {
+        type: Number,
+        default: 0,
+      },
+      numReviews: {
+        type: Number,
+        default: 0,
       },
       quantity: {
           type: Number,

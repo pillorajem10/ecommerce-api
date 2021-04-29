@@ -1,4 +1,5 @@
 const Product = require('../models/Prdct.js');
+const Reviews = require('../models/Reviews.js');
 const formidable = require ('formidable');
 const { errorHandler } = require('../helpers/dbErrorHandler');
 const _ = require ('lodash');
@@ -84,6 +85,37 @@ exports.remove = (req,res) => {
   });
 };
 
+exports.reviews = (req, res, id) => {
+  let product = req.product;
+  const review = new Reviews(req.body)
+  review.save((err, data) => {
+      if (err) {
+          return res.status(400).json({
+              error: errorHandler(err)
+          });
+      } else {
+          Product.findById(product, function(err, reviewedProduct){
+            if(err || !product){
+              return res.status(400).json({
+                error: errorHandler(err)
+              });
+            } else {
+              product.reviews.push(review);
+              product.numReviews = product.reviews.length;
+              product.rating = product.reviews.reduce((a, c) => c.rating + a, 0) /
+              product.reviews.length;
+              //product.finalRating = product.rating + product.numReviews;
+              product.save();
+              res.status(200).send({
+                message: 'Review saved successfully.',
+              });
+            }
+        });
+      }
+  });
+}
+
+
 exports.update = (req, res) => {
    let form = new formidable.IncomingForm()
    form.keepExtensions = true
@@ -122,7 +154,7 @@ exports.update = (req, res) => {
      product.save((err, result)=>{
        if(err){
          return res.status(400).json({
-           error: errorHandler(err)
+           error: "Photo is required"
          })
        }
 
@@ -210,7 +242,7 @@ exports.list = (req, res) => {
     }];
   }
 
-
+/*
   if (!req.query.category && req.query.name) {
     filterSearchOptions = [{
       $match: {
@@ -226,10 +258,11 @@ exports.list = (req, res) => {
       }
     }];
   }
+*/
 
-  var aggregateQuery = Recipe.aggregate(filterSearchOptions);
-  // execute recipeList
-  Recipe
+  var aggregateQuery = Product.aggregate(filterSearchOptions);
+  // execute productList
+  Product
   .aggregatePaginate(aggregateQuery,  { page, limit },
   (
     err,
@@ -261,6 +294,5 @@ exports.nopaginatelist = (req, res) => {
               });
           }
           res.json(products);
-          console.log('products', products);
       });
 };

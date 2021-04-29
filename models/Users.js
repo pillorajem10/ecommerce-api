@@ -13,7 +13,6 @@ let UserSchema = new mongoose.Schema(
         mname: {
             type: String,
             trim: true,
-            required: true,
             maxlength: 32
         },
         lname: {
@@ -30,7 +29,8 @@ let UserSchema = new mongoose.Schema(
             type: String,
             trim: true,
             required: true,
-            maxlength: 32
+            maxlength: 32,
+            unique: true
         },
         email: {
             type: String,
@@ -84,9 +84,7 @@ UserSchema.methods = {
 UserSchema.pre('save', function (next) {
   var user = this;
   const { fname, mname, lname } = user;
-  user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()}
-                    ${mname[0].toUpperCase() + mname.slice(1).toLowerCase()}
-                    ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
+  user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()} ${mname[0].toUpperCase() + mname.slice(1).toLowerCase()} ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
   user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
   user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
   user.mname = mname[0].toUpperCase() + mname.slice(1).toLowerCase();
@@ -96,9 +94,7 @@ UserSchema.pre('save', function (next) {
 UserSchema.pre('findOneAndUpdate', function (next) {
   var user = this._update;
   const { fname, mname, lname } = user;
-  user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()}
-                    ${mname[0].toUpperCase() + mname.slice(1).toLowerCase()}
-                    ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
+  user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()} ${mname[0].toUpperCase() + mname.slice(1).toLowerCase()} ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
   user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
   user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
   user.mname = mname[0].toUpperCase() + mname.slice(1).toLowerCase();

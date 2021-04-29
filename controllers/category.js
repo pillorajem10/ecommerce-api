@@ -42,7 +42,6 @@ exports.create = (req, res) => {
 
      category.save((err, result)=>{
        if(err){
-         console.log('ERROR', err)
          return res.status(400).json({
            error: errorHandler(err)
          })
@@ -158,7 +157,6 @@ exports.update = (req, res) => {
 
      category.save((err, result)=>{
        if(err){
-         console.log('ERROR', err)
          return res.status(400).json({
            error: errorHandler(err)
          })
