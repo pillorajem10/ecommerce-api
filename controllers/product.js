@@ -101,12 +101,26 @@ exports.reviews = (req, res, id) => {
               });
             } else {
               console.log('REQ BODY RATING', req.body.rating)
+
+              /*
+                let rating = 0;
+                product.reviews.map(rebyu => {
+                  console.log('[[BEM BEM 3]]', rebyu);
+                  console.log('[[BEM BEM 4]]', rebyu.rating);
+                  rating += rebyu.rating;
+                  return rebyu;
+                });
+              */
+
               product.reviews.push(review);
               product.numReviews = product.reviews.length;
-              product.rating = product.reviews.reduce((a, c) => c.rating + a, 0) /
-              product.reviews.length;
-              //product.finalRating = product.rating + product.numReviews;
+              //product.rating = product.reviews.reduce((a, c) => c.rating + a, 0) /
+              //product.reviews.length;
+              product.rating = review.rating / product.reviews.length;
+              product.finalRating = product.rating + product.numReviews;
               product.save();
+              //console.log('[[BEM BEM 1]]', rating);
+              console.log('[[BEM BEM 2]]', review.rating);
               res.status(200).send({
                 message: 'Review saved successfully.',
               });

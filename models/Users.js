@@ -84,21 +84,35 @@ UserSchema.methods = {
 UserSchema.pre('save', function (next) {
   var user = this;
   const { fname, mname, lname } = user;
-  user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()} ${mname[0].toUpperCase() + mname.slice(1).toLowerCase()} ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
-  user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
-  user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
-  user.mname = mname[0].toUpperCase() + mname.slice(1).toLowerCase();
-  next();
+  if (mname) {
+    user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()} ${mname[0].toUpperCase() + mname.slice(1).toLowerCase()} ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
+    user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
+    user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
+    user.mname = mname[0].toUpperCase() + mname.slice(1).toLowerCase();
+    next();
+  } else {
+    user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()} ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
+    user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
+    user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
+    next();
+  }
 });
 
 UserSchema.pre('findOneAndUpdate', function (next) {
   var user = this._update;
   const { fname, mname, lname } = user;
-  user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()} ${mname[0].toUpperCase() + mname.slice(1).toLowerCase()} ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
-  user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
-  user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
-  user.mname = mname[0].toUpperCase() + mname.slice(1).toLowerCase();
-  next();
+  if (mname) {
+    user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()} ${mname[0].toUpperCase() + mname.slice(1).toLowerCase()} ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
+    user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
+    user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
+    user.mname = mname[0].toUpperCase() + mname.slice(1).toLowerCase();
+    next();
+  } else {
+    user.full_name = `${fname[0].toUpperCase() + fname.slice(1).toLowerCase()} ${lname[0].toUpperCase() + lname.slice(1).toLowerCase()}`;
+    user.lname = lname[0].toUpperCase() + lname.slice(1).toLowerCase();
+    user.fname = fname[0].toUpperCase() + fname.slice(1).toLowerCase();
+    next();
+  }
 });
 
 module.exports = mongoose.model('User', UserSchema);
