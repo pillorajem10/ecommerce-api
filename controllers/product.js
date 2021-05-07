@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 
 
 exports.productById = (req,res,next,id)=>{
-  Product.findById(id).exec((err, product)=>{
+  Product.findById(id).populate(['reviews', 'category']).exec((err, product)=>{
       if(err || !product){
         return res.status(400).json({
           error:'Product not found'
@@ -63,10 +63,9 @@ exports.create = (req, res) => {
          return res.status(400).json({
            error: errorHandler(err)
          })
+       } else {
+         return res.json(result);
        }
-
-       res.json(result);
-
      })
    });
 };
@@ -94,38 +93,32 @@ exports.reviews = (req, res, id) => {
               error: errorHandler(err)
           });
       } else {
-          Product.findById(product, function(err, reviewedProduct){
-            if(err || !product){
+          Product.findById(product).populate('reviews').exec((err, callbackProduct) => {
+            if(err || !callbackProduct){
               return res.status(400).json({
-                error: errorHandler(err)
+                error:'Product not found'
               });
             } else {
-              console.log('REQ BODY RATING', req.body.rating)
+              callbackProduct.reviews.push(review);
+              callbackProduct.numReviews = callbackProduct.reviews.length;
 
-              /*
-                let rating = 0;
-                product.reviews.map(rebyu => {
-                  console.log('[[BEM BEM 3]]', rebyu);
-                  console.log('[[BEM BEM 4]]', rebyu.rating);
-                  rating += rebyu.rating;
-                  return rebyu;
-                });
-              */
+              //formula for the rating
+              callbackProduct.rating = callbackProduct.reviews.reduce((a, c) => {
+                return c.rating + a;
+              }, 0) /
+              callbackProduct.reviews.length;
 
-              product.reviews.push(review);
-              product.numReviews = product.reviews.length;
-              //product.rating = product.reviews.reduce((a, c) => c.rating + a, 0) /
-              //product.reviews.length;
-              product.rating = review.rating / product.reviews.length;
-              product.finalRating = product.rating + product.numReviews;
-              product.save();
-              //console.log('[[BEM BEM 1]]', rating);
-              console.log('[[BEM BEM 2]]', review.rating);
+              //final rating for most popular product rating
+              callbackProduct.finalRating = callbackProduct.rating + callbackProduct.numReviews;
+
+              //save reviews in product model
+              callbackProduct.save();
+
               res.status(200).send({
                 message: 'Review saved successfully.',
               });
             }
-        });
+          })
       }
   });
 }
