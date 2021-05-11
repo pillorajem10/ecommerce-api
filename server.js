@@ -42,7 +42,8 @@ const connection = mongoose.connection;
 mongoose.connect(config.database, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useCreateIndex: true
+  useCreateIndex: true,
+  useFindAndModify: false
 });
 
 connection.once('open', function() {

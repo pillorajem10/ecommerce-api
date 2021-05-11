@@ -105,13 +105,13 @@ exports.reviews = (req, res, id) => {
               error: errorHandler(err)
           });
       } else {
-          Product.findById(product).populate('reviews').exec((err, callbackProduct) => {
+          Product.findOne(product).populate('reviews').exec((err, callbackProduct) => {
             if(err || !callbackProduct){
               return res.status(400).json({
                 error:'Product not found'
               });
             } else {
-              callbackProduct.reviews.push(review);
+              console.log('PUSH', callbackProduct.reviews.push(review));
               callbackProduct.numReviews = callbackProduct.reviews.length;
 
               //formula for the rating
@@ -141,24 +141,22 @@ exports.reviews = (req, res, id) => {
 exports.reviewUpdate = (req, res, id) => {
   let product = req.product;
   const review = req.review
-  review.name = req.body.name
   review.comment = req.body.comment
   review.rating = req.body.rating
-  review.userRole = req.body.userRole
-  review.userId = req.body.userId
   review.save((err, data) => {
       if (err) {
+          console.log('ERROR', err)
           return res.status(400).json({
               error: errorHandler(err)
           });
       } else {
-          Product.findById(product).populate('reviews').exec((err, callbackProduct) => {
+          Product.findOneAndUpdate(product).populate('reviews').exec((err, callbackProduct) => {
             if(err || !callbackProduct){
               return res.status(400).json({
                 error:'Product not found'
               });
+              console.log('ERROR', err)
             } else {
-              callbackProduct.reviews.set(review);
               callbackProduct.numReviews = callbackProduct.reviews.length;
 
               //formula for the rating
@@ -168,14 +166,11 @@ exports.reviewUpdate = (req, res, id) => {
               //final rating for most popular product rating
               callbackProduct.finalRating = callbackProduct.rating + callbackProduct.numReviews;
 
-              console.log('REBYUUUU', callbackProduct.reviews);
-              console.log('BEM BEM', callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
-              callbackProduct.reviews.length)
+              //delete the previous review by id
+              callbackProduct.reviews.pull(review);
 
-              //save reviews in product model
-              console.log('[[REVIEWWW]]', callbackProduct.reviews);
-              console.log('[[LENGTH PRE]]', callbackProduct.reviews.length);
-              console.log('[[PRODUCT RATING SHIT]]', callbackProduct.rating);
+              //saving new comment by id
+              callbackProduct.reviews.push(review);
               callbackProduct.save();
 
               res.status(200).send({
