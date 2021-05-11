@@ -19,6 +19,18 @@ exports.productById = (req,res,next,id)=>{
   });
 };
 
+exports.reviewById = (req,res,next,id)=>{
+  Reviews.findById(id).exec((err, review)=>{
+      if(err || !review){
+        return res.status(400).json({
+          error:'Review not found'
+        });
+      }
+      req.review = review;
+      next();
+  });
+};
+
 exports.read = (req, res) =>{
   req.product.photo = undefined
   return res.json(req.product);
@@ -103,15 +115,18 @@ exports.reviews = (req, res, id) => {
               callbackProduct.numReviews = callbackProduct.reviews.length;
 
               //formula for the rating
-              callbackProduct.rating = callbackProduct.reviews.reduce((a, c) => {
-                return c.rating + a;
-              }, 0) /
+              callbackProduct.rating = callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
               callbackProduct.reviews.length;
 
               //final rating for most popular product rating
               callbackProduct.finalRating = callbackProduct.rating + callbackProduct.numReviews;
 
+              console.log('RATING', callbackProduct.rating);
+              console.log('BEM BEM', callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
+              callbackProduct.reviews.length)
+
               //save reviews in product model
+              console.log('[[REVIEWWW]]', callbackProduct.reviews);
               callbackProduct.save();
 
               res.status(200).send({
@@ -123,6 +138,102 @@ exports.reviews = (req, res, id) => {
   });
 }
 
+exports.reviewUpdate = (req, res, id) => {
+  let product = req.product;
+  const review = req.review
+  review.name = req.body.name
+  review.comment = req.body.comment
+  review.rating = req.body.rating
+  review.userRole = req.body.userRole
+  review.userId = req.body.userId
+  review.save((err, data) => {
+      if (err) {
+          return res.status(400).json({
+              error: errorHandler(err)
+          });
+      } else {
+          Product.findById(product).populate('reviews').exec((err, callbackProduct) => {
+            if(err || !callbackProduct){
+              return res.status(400).json({
+                error:'Product not found'
+              });
+            } else {
+              callbackProduct.reviews.set(review);
+              callbackProduct.numReviews = callbackProduct.reviews.length;
+
+              //formula for the rating
+              callbackProduct.rating = callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
+              callbackProduct.reviews.length;
+
+              //final rating for most popular product rating
+              callbackProduct.finalRating = callbackProduct.rating + callbackProduct.numReviews;
+
+              console.log('REBYUUUU', callbackProduct.reviews);
+              console.log('BEM BEM', callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
+              callbackProduct.reviews.length)
+
+              //save reviews in product model
+              console.log('[[REVIEWWW]]', callbackProduct.reviews);
+              console.log('[[LENGTH PRE]]', callbackProduct.reviews.length);
+              console.log('[[PRODUCT RATING SHIT]]', callbackProduct.rating);
+              callbackProduct.save();
+
+              res.status(200).send({
+                message: 'Review updated successfully.',
+              });
+            }
+          })
+      }
+  });
+}
+
+exports.reviewDel = (req, res, id) => {
+  let product = req.product;
+  const review = req.review
+  review.remove((err, data) => {
+      if (err) {
+          return res.status(400).json({
+              error: errorHandler(err)
+          });
+      } else {
+          Product.findById(product).populate('reviews').exec((err, callbackProduct) => {
+            if(err || !callbackProduct){
+              return res.status(400).json({
+                error:'Product not found'
+              });
+            } else {
+              if (err || !review) {
+                return res.status(400).json({
+                  error:'Something went wrong, review not found'
+                });
+              } else {
+                if(callbackProduct.reviews.length === 0) {
+                  callbackProduct.rating = 0
+                } else {
+                  //formula for the rating
+                  callbackProduct.rating = callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
+                  callbackProduct.reviews.length;
+                }
+                callbackProduct.numReviews = callbackProduct.reviews.length;
+
+                //final rating for most popular product rating
+                callbackProduct.finalRating = callbackProduct.rating + callbackProduct.numReviews;
+                callbackProduct.reviews.length
+
+                //remove the into the review document
+                callbackProduct.reviews.pull(review);
+
+                //save reviews in product model
+                callbackProduct.save();
+                res.status(200).send({
+                  message: 'Review deleted successfully.',
+                });
+              }
+            }
+          })
+      }
+  });
+}
 
 exports.update = (req, res) => {
    let form = new formidable.IncomingForm()
