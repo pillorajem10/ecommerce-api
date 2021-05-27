@@ -138,6 +138,40 @@ exports.reviews = (req, res, id) => {
   });
 }
 
+exports.getReviews = (req, res) => {
+
+    //for pagination
+    const { pageIndex, pageSize } = req.query;
+    const page = pageIndex;
+    const limit = pageSize;
+
+    const aggre = [
+      {$match: {product: new mongoose.Types.ObjectId(req.query.product)}},
+      {$lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'userId'
+      }}
+    ];
+
+    var aggregateQuery = Reviews.aggregate(aggre);
+    // execute productList
+    Reviews
+    .aggregatePaginate(aggregateQuery,  { page, limit },
+    (
+      err,
+      result
+    ) => {
+      if (err) {
+        console.err(err);
+      } else {
+        res.json(result);
+        console.log('[[RESULTA]]', result)
+      }
+    })
+}
+
 exports.reviewUpdate = (req, res, id) => {
   let product = req.product;
   const review = req.review

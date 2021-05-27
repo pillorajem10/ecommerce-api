@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 
-const { create, productById, read, remove, update, list, photo, nopaginatelist, reviews, reviewById, reviewDel, reviewUpdate } = require('../controllers/product');
+const { create, productById, read, remove, update, list, photo, nopaginatelist, reviews, reviewById, reviewDel, reviewUpdate, getReviews } = require('../controllers/product');
 
 const { authenticateToken, isAuth, isAdmin } = require('../requirements');
 const { userById } = require('../controllers/user');
@@ -15,9 +15,10 @@ router.put('/update/:productId/:userId', authenticateToken, isAdmin, update);
 router.get('/sort', nopaginatelist);
 router.get('/photo/:productId', photo);
 router.get('/', list);
-router.post('/reviews/:productId', authenticateToken, reviews);
-router.delete('/reviews/:productId/:reviewId', authenticateToken, reviewDel);
-router.put('/reviews/:productId/:reviewId', authenticateToken, reviewUpdate)
+router.get('/reviews', getReviews);
+router.post('/reviews/add/:productId', authenticateToken, reviews);
+router.delete('/reviews/delete/:productId/:reviewId', authenticateToken, reviewDel);
+router.put('/reviews/update/:productId/:reviewId', authenticateToken, reviewUpdate)
 
 router.param('userId', userById);
 router.param('productId', productById);
