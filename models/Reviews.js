@@ -9,7 +9,6 @@ let ReviewSchema = new mongoose.Schema (
     product: { type: ObjectId, ref: "Product", required: true },
     comment: { type: String, required: true },
     rating: { type: Number, default: 0 },
-    userRole: { type: Number, default: 0 },
   },
   {
     timestamps: true,

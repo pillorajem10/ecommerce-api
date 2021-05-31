@@ -97,14 +97,32 @@ exports.remove = (req,res) => {
 };
 
 exports.reviews = (req, res, id) => {
+  const badWords = [
+    'tite',
+    'puke',
+  ]
+
   let product = req.product;
-  const review = new Reviews(req.body)
-  review.save((err, data) => {
-      if (err) {
-          return res.status(400).json({
-              error: errorHandler(err)
-          });
-      } else {
+  const review = new Reviews(req.body);
+  let badComment = false;
+
+  Object.keys(badWords).map(arr => {
+    if (review.comment.toLowerCase().includes(badWords[arr]) === true) {
+      badComment = true;
+    }
+  });
+
+  if (badComment === true) {
+    return res.status(400).json({
+      error:'Your comment is inappropriate'
+    });
+  } else {
+    review.save((err, data) => {
+        if (err) {
+            return res.status(400).json({
+                error: errorHandler(err)
+            });
+        } else {
           Product.findOne(product).populate('reviews').exec((err, callbackProduct) => {
             if(err || !callbackProduct){
               return res.status(400).json({
@@ -121,12 +139,7 @@ exports.reviews = (req, res, id) => {
               //final rating for most popular product rating
               callbackProduct.finalRating = callbackProduct.rating + callbackProduct.numReviews;
 
-              console.log('RATING', callbackProduct.rating);
-              console.log('BEM BEM', callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
-              callbackProduct.reviews.length)
-
               //save reviews in product model
-              console.log('[[REVIEWWW]]', callbackProduct.reviews);
               callbackProduct.save();
 
               res.status(200).send({
@@ -134,8 +147,9 @@ exports.reviews = (req, res, id) => {
               });
             }
           })
-      }
-  });
+        }
+    });
+  }
 }
 
 exports.getReviews = (req, res) => {
@@ -158,7 +172,7 @@ exports.getReviews = (req, res) => {
     var aggregateQuery = Reviews.aggregate(aggre);
     // execute productList
     Reviews
-    .aggregatePaginate(aggregateQuery,  { page, limit },
+    .aggregatePaginate(aggregateQuery, { sort: { createdAt: 'desc' }, page, limit },
     (
       err,
       result
@@ -167,7 +181,6 @@ exports.getReviews = (req, res) => {
         console.err(err);
       } else {
         res.json(result);
-        console.log('[[RESULTA]]', result)
       }
     })
 }
@@ -411,7 +424,7 @@ exports.list = (req, res) => {
   var aggregateQuery = Product.aggregate(filterSearchOptions);
   // execute productList
   Product
-  .aggregatePaginate(aggregateQuery,  { page, limit },
+  .aggregatePaginate(aggregateQuery, { page, limit },
   (
     err,
     result
