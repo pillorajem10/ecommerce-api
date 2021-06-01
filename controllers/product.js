@@ -96,11 +96,89 @@ exports.remove = (req,res) => {
   });
 };
 
+exports.getReviews = (req, res) => {
+
+    //for pagination
+    const { pageIndex, pageSize } = req.query;
+    const page = pageIndex;
+    const limit = pageSize;
+
+    const aggre = [
+      {$match: {product: new mongoose.Types.ObjectId(req.query.product)}},
+      {$lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'userId'
+      }}
+    ];
+
+    var aggregateQuery = Reviews.aggregate(aggre);
+    // execute productList
+    Reviews
+    .aggregatePaginate(aggregateQuery, { sort: { createdAt: 'desc' }, page, limit },
+    (
+      err,
+      result
+    ) => {
+      if (err) {
+        console.err(err);
+      } else {
+        res.json(result);
+      }
+    })
+};
+
 exports.reviews = (req, res, id) => {
   const badWords = [
     'tite',
     'puke',
-  ]
+    'tite',
+    'pepe',
+    'suso',
+    'kantot',
+    'kantutan',
+    'kantotan',
+    'puta',
+    'gago',
+    'eut',
+    'iyot',
+    'tanginamo',
+    'tangina',
+    'tarantado',
+    'pakyu',
+    'fuck',
+    'motherfucker',
+    'putangina',
+    'putanginamo',
+    'bobo',
+    'tanga',
+    'kupal',
+    'puke',
+    'puki',
+    'bilat',
+    'kipay',
+    'tit3',
+    't@nginamo',
+    't@ngina',
+    'fuckyou',
+    'pussy',
+    'dickhead',
+    'bitch',
+    'gagu',
+    'ogag',
+    'ugag',
+    'titi',
+    'itit',
+    'porn',
+    'youjizz',
+    'pornhub',
+    'g@go',
+    'p@kyu',
+    'cyka',
+    'blyat',
+    'kantut',
+  ];
 
   let product = req.product;
   const review = new Reviews(req.body);
@@ -115,6 +193,10 @@ exports.reviews = (req, res, id) => {
   if (badComment === true) {
     return res.status(400).json({
       error:'Your comment is inappropriate'
+    });
+  } else if(review.comment.length > 300) {
+    return res.status(400).json({
+      error:'Your comment is too long'
     });
   } else {
     review.save((err, data) => {
@@ -152,81 +234,116 @@ exports.reviews = (req, res, id) => {
   }
 }
 
-exports.getReviews = (req, res) => {
-
-    //for pagination
-    const { pageIndex, pageSize } = req.query;
-    const page = pageIndex;
-    const limit = pageSize;
-
-    const aggre = [
-      {$match: {product: new mongoose.Types.ObjectId(req.query.product)}},
-      {$lookup: {
-        from: 'users',
-        localField: 'userId',
-        foreignField: '_id',
-        as: 'userId'
-      }}
-    ];
-
-    var aggregateQuery = Reviews.aggregate(aggre);
-    // execute productList
-    Reviews
-    .aggregatePaginate(aggregateQuery, { sort: { createdAt: 'desc' }, page, limit },
-    (
-      err,
-      result
-    ) => {
-      if (err) {
-        console.err(err);
-      } else {
-        res.json(result);
-      }
-    })
-}
-
 exports.reviewUpdate = (req, res, id) => {
+  const badWords = [
+    'tite',
+    'puke',
+    'tite',
+    'pepe',
+    'suso',
+    'kantot',
+    'kantutan',
+    'kantotan',
+    'puta',
+    'gago',
+    'eut',
+    'iyot',
+    'tanginamo',
+    'tangina',
+    'tarantado',
+    'pakyu',
+    'fuck',
+    'motherfucker',
+    'putangina',
+    'putanginamo',
+    'bobo',
+    'tanga',
+    'kupal',
+    'puke',
+    'puki',
+    'bilat',
+    'kipay',
+    'tit3',
+    't@nginamo',
+    't@ngina',
+    'fuckyou',
+    'pussy',
+    'dickhead',
+    'bitch',
+    'gagu',
+    'ogag',
+    'ugag',
+    'titi',
+    'itit',
+    'porn',
+    'youjizz',
+    'pornhub',
+    'g@go',
+    'p@kyu',
+    'cyka',
+    'blyat',
+    'kantut',
+  ];
+
   let product = req.product;
-  const review = req.review
-  review.comment = req.body.comment
-  review.rating = req.body.rating
-  review.save((err, data) => {
-      if (err) {
-          console.log('ERROR', err)
-          return res.status(400).json({
-              error: errorHandler(err)
-          });
-      } else {
-          Product.findOneAndUpdate(product).populate('reviews').exec((err, callbackProduct) => {
-            if(err || !callbackProduct){
-              return res.status(400).json({
-                error:'Product not found'
-              });
-              console.log('ERROR', err)
-            } else {
-              callbackProduct.numReviews = callbackProduct.reviews.length;
+  const review = req.review;
+  review.comment = req.body.comment;
+  review.rating = req.body.rating;
+  let badComment = false;
 
-              //formula for the rating
-              callbackProduct.rating = callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
-              callbackProduct.reviews.length;
-
-              //final rating for most popular product rating
-              callbackProduct.finalRating = callbackProduct.rating + callbackProduct.numReviews;
-
-              //delete the previous review by id
-              callbackProduct.reviews.pull(review);
-
-              //saving new comment by id
-              callbackProduct.reviews.push(review);
-              callbackProduct.save();
-
-              res.status(200).send({
-                message: 'Review updated successfully.',
-              });
-            }
-          })
-      }
+  Object.keys(badWords).map(arr => {
+    if (review.comment.toLowerCase().includes(badWords[arr]) === true) {
+      badComment = true;
+    }
   });
+
+  if (badComment === true) {
+    return res.status(400).json({
+      error:'Your comment is inappropriate'
+    });
+  } else if(review.comment.length > 300) {
+    return res.status(400).json({
+      error:'Your comment is too long'
+    });
+  } else {
+    review.save((err, data) => {
+        if (err) {
+            console.log('ERROR', err)
+            return res.status(400).json({
+                error: errorHandler(err)
+            });
+        } else {
+            Product.findOneAndUpdate(product).populate('reviews').exec((err, callbackProduct) => {
+              if(err || !callbackProduct){
+                return res.status(400).json({
+                  error:'Product not found'
+                });
+                console.log('ERROR', err)
+              } else {
+                callbackProduct.numReviews = callbackProduct.reviews.length;
+
+                //formula for the rating
+                callbackProduct.rating = callbackProduct.reviews.reduce((a, c) => c.rating + a, 0) /
+                callbackProduct.reviews.length;
+
+                //final rating for most popular product rating
+                callbackProduct.finalRating = callbackProduct.rating + callbackProduct.numReviews;
+
+                //delete the previous review by id
+                callbackProduct.reviews.pull(review);
+
+                //saving new comment by id
+                callbackProduct.reviews.push(review);
+                callbackProduct.save();
+
+                res.status(200).send({
+                  message: 'Review updated successfully.',
+                });
+              }
+            })
+        }
+    });  
+  }
 }
 
 exports.reviewDel = (req, res, id) => {
