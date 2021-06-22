@@ -342,7 +342,7 @@ exports.reviewUpdate = (req, res, id) => {
               }
             })
         }
-    });  
+    });
   }
 }
 

@@ -27,6 +27,7 @@ const user = require('./routes/user');
 const category = require('./routes/category');
 const brand = require('./routes/brand');
 const product = require('./routes/product');
+const shipto = require('./routes/shipto');
 
 //routes
 app.use('/api/auth', auth);
@@ -34,6 +35,7 @@ app.use('/api/user', user);
 app.use('/api/category', category);
 app.use('/api/brand', brand);
 app.use('/api/product', product);
+app.use('/api/shipto', shipto);
 
 //mongoose connection
 const connection = mongoose.connection;
