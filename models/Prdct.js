@@ -9,6 +9,8 @@ let ProductSchema = new mongoose.Schema(
       name: { type: String, trim: true, required: true, maxlength: 32 },
       description: { type: String, required: true, maxlength: 2000 },
       price: { type: Number, trim: true, required: true, maxlength: 32 },
+      photo: { type: String, required: true },
+      variants: [{ type: ObjectId, ref: 'Variant' }],
       category: { type: ObjectId, ref: "Category", required: true },
       brand: { type: ObjectId, ref: "Brand", required: true },
       seller: { type: ObjectId, ref: "User", required: true },
@@ -17,9 +19,7 @@ let ProductSchema = new mongoose.Schema(
       finalRating: { type: Number, default: 0 },
       numReviews: { type: Number, default: 0 },
       quantity: { type: Number },
-      sold: { type: Number, default: 0 },
-      photo: { data: Buffer, contentType: String },
-      shipping: { required: false, type: Boolean }
+      sold: { type: Number, default: 0 }
     },
     { timestamps: true }
 );

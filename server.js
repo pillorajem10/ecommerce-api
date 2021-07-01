@@ -28,6 +28,7 @@ const category = require('./routes/category');
 const brand = require('./routes/brand');
 const product = require('./routes/product');
 const shipto = require('./routes/shipto');
+const upload = require('./routes/upload');
 
 //routes
 app.use('/api/auth', auth);
@@ -36,6 +37,7 @@ app.use('/api/category', category);
 app.use('/api/brand', brand);
 app.use('/api/product', product);
 app.use('/api/shipto', shipto);
+app.use('/api/aws', upload);
 
 //mongoose connection
 const connection = mongoose.connection;

@@ -1,19 +1,17 @@
 const Product = require('../models/Prdct.js');
 const Reviews = require('../models/Reviews.js');
-const formidable = require ('formidable');
+const Variant = require('../models/Variant.js');
 const { errorHandler } = require('../helpers/dbErrorHandler');
-const _ = require ('lodash');
-const fs = require ('fs');
 const mongoose = require('mongoose');
 
-
 exports.productById = (req,res,next,id)=>{
-  Product.findById(id).populate(['brand', 'category', 'seller']).exec((err, product)=>{
+  Product.findById(id).populate(['brand', 'category', 'seller', 'variants']).exec((err, product)=>{
       if(err || !product){
         return res.status(400).json({
           error:'Product not found'
         });
       }
+      console.log("PRODUCT: ", product)
       req.product = product;
       next();
   });
@@ -32,54 +30,20 @@ exports.reviewById = (req,res,next,id)=>{
 };
 
 exports.read = (req, res) =>{
-  req.product.photo = undefined
   return res.json(req.product);
 };
 
 exports.create = (req, res) => {
-   let form = new formidable.IncomingForm()
-   form.keepExtensions = true
-   form.parse(req, (err, fields, files)=>{
-     if(err){
-       return res.status(400).json({
-         error:'Image could not be uploaded'
-       });
-     }
-
-     //check for fields
-     const { name, description, price, category, brand, quantity, shipping } = fields
-     if(!name || !description || !price || !category || !brand || !quantity || !shipping){
-       return res.status(400).json({
-         error:'All fields are required'
-       });
-     }
-
-     let product = new Product(fields)
-
-     //1kb is = 1000
-     //1mb is = 1000000
-
-     if(files.photo){
-       //console.log("FILES PHOTO: ", files.photo);
-       if(files.photo.size > 1000000){
-         return res.status(400).json({
-           error:'Image should be less than 1MB size'
-         });
-       }
-       product.photo.data = fs.readFileSync(files.photo.path)
-       product.photo.contentType = files.photo.type
-     }
-
-     product.save((err, result)=>{
-       if(err){
-         return res.status(400).json({
-           error: errorHandler(err)
-         })
-       } else {
-         return res.json(result);
-       }
-     })
-   });
+    const product = new Product(req.body);
+    product.save((err, data) => {
+        if (err) {
+            console.log('ERROR', err)
+            return res.status(400).json({
+                error: errorHandler(err)
+            });
+        }
+        res.json({ data });
+    });
 };
 
 exports.remove = (req,res) => {
@@ -128,6 +92,37 @@ exports.getReviews = (req, res) => {
       }
     })
 };
+
+exports.addVariant = (req, res, id) => {
+  let product = req.product;
+  const variant = new Variant(req.body);
+  console.log('PRODUCT', product);
+
+  variant.save((err, data) => {
+      if (err) {
+          console.log("ERR", err)
+          return res.status(400).json({
+              error: errorHandler(err)
+          });
+      } else {
+        Product.findOne(product).populate('reviews').exec((err, callbackProduct) => {
+          console.log('CALLBACK', callbackProduct);
+          if(err || !callbackProduct){
+            return res.status(400).json({
+              error:'Product not found'
+            });
+          } else {
+            callbackProduct.variants.push(variant);
+            callbackProduct.save();
+
+            res.status(200).send({
+              message: 'Variant saved successfully.',
+            });
+          }
+        })
+      }
+  });
+}
 
 exports.reviews = (req, res, id) => {
   const badWords = [
@@ -232,7 +227,7 @@ exports.reviews = (req, res, id) => {
         }
     });
   }
-}
+};
 
 exports.reviewUpdate = (req, res, id) => {
   const badWords = [
@@ -394,61 +389,34 @@ exports.reviewDel = (req, res, id) => {
   });
 }
 
-exports.update = (req, res) => {
-   let form = new formidable.IncomingForm()
-   form.keepExtensions = true
-   form.parse(req, (err, fields, files)=>{
-     if(err){
-       return res.status(400).json({
-         error:'Image could not be uploaded'
-       });
-     }
+exports.update = (req,res) => {
+  const product = req.product;
 
-     //check for fields
-     const { name, description, price, category, brand, quantity, shipping } = fields
-     if(!name || !description || !price || !category || !brand || !quantity || !shipping){
-       return res.status(400).json({
-         error:'All fields are required'
-       });
-     }
+  product.name = req.body.name;
+  product.description = req.body.description;
+  product.price = req.body.price;
+  product.category = req.body.category;
+  product.brand = req.body.brand;
+  product.seller = req.body.seller;
+  product.quantity = req.body.quantity;
 
-     let product = req.product
-     product =_.extend(product, fields)
+  product.save((err, data)=>{
+    if(err){
+      return res.status(400).json({
+        error:errorHandler(err)
+      });
+    }
+    res.json(data);
+  })
+}
 
-     //1kb is = 1000
-     //1mb is = 1000000
-
-     if(files.photo){
-       //console.log("FILES PHOTO: ", files.photo);
-       if(files.photo.size > 1000000){
-         return res.status(400).json({
-           error:'Image should be less than 1MB size'
-         });
-       }
-       product.photo.data = fs.readFileSync(files.photo.path)
-       product.photo.contentType = files.photo.type
-     }
-
-     product.save((err, result)=>{
-       if(err){
-         return res.status(400).json({
-           error: "Photo is required"
-         })
-       }
-
-       res.json(result);
-
-     })
-   });
-};
-
-exports.photo = (req, res, next) => {
+/*exports.photo = (req, res, next) => {
   if(req.product.photo.data){
     res.set('Content-Type', req.product.photo.contentType)
     return res.send(req.product.photo.data)
   }
   next();
-};
+};*/
 
 
 exports.list = (req, res) => {
@@ -561,7 +529,6 @@ exports.nopaginatelist = (req, res) => {
   let limit = req.query.limit ? parseInt(req.query.limit) : 0;
 
   Product.find()
-      .select('-photo')
       .populate('category')
       .sort([[sortBy, order]])
       .limit(limit)

@@ -9,10 +9,7 @@ let CategorySchema = new mongoose.Schema (
             maxlength: 32,
             unique: true
         },
-        photo: {
-            data: Buffer,
-            contentType: String
-        },
+        photo: { type: String, required: true }
     },
     { timestamps: true }
 );

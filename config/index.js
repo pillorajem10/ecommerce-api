@@ -6,4 +6,7 @@ module.exports = {
   secret: 'lmaoitsasecret',
   refreshTokenLife: '1d',
   accessTokenLife: '12h',
+  accessKeyId: 'AKIAXPVM6WXLGDHAIPC3',
+  secretAccessKey: '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',
+  bucketName: 'parasite-bucket'
 };
