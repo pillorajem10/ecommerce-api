@@ -17,7 +17,7 @@ exports.productById = (req,res,next,id)=>{
   });
 };
 
-exports.reviewById = (req,res,next,id)=>{
+exports.reviewById = (req, res, next, id)=>{
   Reviews.findById(id).exec((err, review)=>{
       if(err || !review){
         return res.status(400).json({
@@ -29,9 +29,28 @@ exports.reviewById = (req,res,next,id)=>{
   });
 };
 
-exports.read = (req, res) =>{
+exports.variantById = (req, res, next, id)=>{
+  Variant.findById(id).exec((err, variant)=>{
+      if(err || !variant){
+        return res.status(400).json({
+          error:'Review not found'
+        });
+      }
+      req.variant = variant;
+      console.log('VARIANT', variant);
+      next();
+  });
+};
+
+exports.read = (req, res) => {
   return res.json(req.product);
 };
+
+exports.readVariant = (req, res) =>{
+  return res.json(req.variant);
+  console.log("REQUESTED VARIANT", req.variant);
+};
+
 
 exports.create = (req, res) => {
     const product = new Product(req.body);
