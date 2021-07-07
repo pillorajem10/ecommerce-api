@@ -11,7 +11,13 @@ exports.productById = (req,res,next,id)=>{
           error:'Product not found'
         });
       }
-      console.log("PRODUCT: ", product)
+
+      //const max = product.variants.reduce((v, b) => Math.max(v, b.variantPrice), product.variants[0].variantPrice);
+      //const min = product.variants.reduce((v, b) => Math.min(v, b.variantPrice), product.variants[0].variantPrice);
+
+      //console.log("MAX", max);
+      //console.log("MIN", min);
+
       req.product = product;
       next();
   });
@@ -37,7 +43,6 @@ exports.variantById = (req, res, next, id)=>{
         });
       }
       req.variant = variant;
-      console.log('VARIANT', variant);
       next();
   });
 };
@@ -54,15 +59,67 @@ exports.readVariant = (req, res) =>{
 
 exports.create = (req, res) => {
     const product = new Product(req.body);
+    const variant = new Variant(req.body);
     product.save((err, data) => {
         if (err) {
             console.log('ERROR', err)
             return res.status(400).json({
                 error: errorHandler(err)
             });
+        } else {
+          variant.save((err, variant) => {
+              if (err) {
+                  console.log("ERR", err)
+                  return res.status(400).json({
+                      error: errorHandler(err)
+                  });
+              } else {
+                product.minPrice = variant.variantPrice;
+                product.variants.push(variant);
+                product.save();
+                res.json({
+                  product: data,
+                });
+              }
+          });
         }
-        res.json({ data });
     });
+};
+
+exports.addVariant = (req, res, id) => {
+  let product = req.product;
+  const variant = new Variant(req.body);
+
+  variant.save((err, data) => {
+      if (err) {
+          console.log("ERR", err)
+          return res.status(400).json({
+              error: errorHandler(err)
+          });
+      } else {
+        Product.findOne(product).populate('variants').exec((err, callbackProduct) => {
+          if(err || !callbackProduct){
+            return res.status(400).json({
+              error:'Product not found'
+            });
+          } else {
+            //console.log("[[VARIANTS LOL UPPER]]", callbackProduct.variants);
+            callbackProduct.variants.push(variant);
+            callbackProduct.maxPrice = callbackProduct.variants.reduce((v, b) => Math.max(v, b.variantPrice), callbackProduct.variants[0].variantPrice);
+            callbackProduct.minPrice = callbackProduct.variants.reduce((v, b) => Math.min(v, b.variantPrice), callbackProduct.variants[0].variantPrice);
+            callbackProduct.save();
+            //console.log("[[VARIANTS LOL]]", callbackProduct.variants);
+            console.log("[[MAX PRICE]]", callbackProduct.maxPrice);
+            console.log("[[MIN PRICE]]", callbackProduct.minPrice);
+            console.log("[[MAX PRICE (1)]]", callbackProduct.variants.reduce((v, b) => Math.max(v, b.variantPrice), callbackProduct.variants[0].variantPrice));
+            console.log("[[MIN PRICE (1)]]", callbackProduct.variants.reduce((v, b) => Math.min(v, b.variantPrice), callbackProduct.variants[0].variantPrice));
+            res.status(200).send({
+              message: 'Variant saved successfully.',
+            });
+          }
+        })
+      }
+  });
 };
 
 exports.remove = (req,res) => {
@@ -112,36 +169,6 @@ exports.getReviews = (req, res) => {
     })
 };
 
-exports.addVariant = (req, res, id) => {
-  let product = req.product;
-  const variant = new Variant(req.body);
-  console.log('PRODUCT', product);
-
-  variant.save((err, data) => {
-      if (err) {
-          console.log("ERR", err)
-          return res.status(400).json({
-              error: errorHandler(err)
-          });
-      } else {
-        Product.findOne(product).populate('reviews').exec((err, callbackProduct) => {
-          console.log('CALLBACK', callbackProduct);
-          if(err || !callbackProduct){
-            return res.status(400).json({
-              error:'Product not found'
-            });
-          } else {
-            callbackProduct.variants.push(variant);
-            callbackProduct.save();
-
-            res.status(200).send({
-              message: 'Variant saved successfully.',
-            });
-          }
-        })
-      }
-  });
-}
 
 exports.reviews = (req, res, id) => {
   const badWords = [
@@ -548,7 +575,7 @@ exports.nopaginatelist = (req, res) => {
   let limit = req.query.limit ? parseInt(req.query.limit) : 0;
 
   Product.find()
-      .populate('category')
+      .populate(['category', 'brand', 'variants'])
       .sort([[sortBy, order]])
       .limit(limit)
       .exec((err, products) => {

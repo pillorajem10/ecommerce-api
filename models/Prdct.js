@@ -8,8 +8,10 @@ let ProductSchema = new mongoose.Schema(
     {
       name: { type: String, trim: true, required: true, maxlength: 32 },
       description: { type: String, required: true, maxlength: 2000 },
-      price: { type: Number, trim: true, required: true, maxlength: 32 },
+      minPrice: { type: Number, trim: true, },
+      maxPrice: { type: Number, default: 0, trim: true, },
       photo: { type: String, required: true },
+      shippedFrom: { type: String, required: true },
       variants: [{ type: ObjectId, ref: 'Variant' }],
       category: { type: ObjectId, ref: "Category", required: true },
       brand: { type: ObjectId, ref: "Brand", required: true },
