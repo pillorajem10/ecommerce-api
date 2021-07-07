@@ -75,6 +75,8 @@ exports.create = (req, res) => {
                   });
               } else {
                 product.minPrice = variant.variantPrice;
+                product.maxPrice = variant.variantPrice;
+                product.quantity = variant.variantStock;
                 product.variants.push(variant);
                 product.save();
                 res.json({
@@ -107,6 +109,7 @@ exports.addVariant = (req, res, id) => {
             callbackProduct.variants.push(variant);
             callbackProduct.maxPrice = callbackProduct.variants.reduce((v, b) => Math.max(v, b.variantPrice), callbackProduct.variants[0].variantPrice);
             callbackProduct.minPrice = callbackProduct.variants.reduce((v, b) => Math.min(v, b.variantPrice), callbackProduct.variants[0].variantPrice);
+            callbackProduct.quantity = callbackProduct.quantity + variant.variantStock;
             callbackProduct.save();
             //console.log("[[VARIANTS LOL]]", callbackProduct.variants);
             console.log("[[MAX PRICE]]", callbackProduct.maxPrice);

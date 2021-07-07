@@ -6,6 +6,7 @@ let VariantSchema = new mongoose.Schema (
     variantName: { type: String, required: true },
     variantPrice: { type: Number, required: true },
     variantPhoto: { type: String, required: true },
+    variantStock: { type: Number, required: true },
   },
   {
     timestamps: true,
